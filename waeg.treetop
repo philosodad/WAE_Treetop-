@@ -1,0 +1,91 @@
+grammar Wae
+  rule wae
+    num / with /  sum / negop   / id
+  end
+  
+  rule with
+    # {with {<id> <WAE>} <WAE>}
+    '{' space operator_1:set space '{' space statement_1:assign space '}' space operand_3:wae space '}' {
+      def eval(env={})
+        operand_3.eval(env={statement_1.name => statement_1.val})
+      end
+    }
+  end
+
+  rule set
+    'with'
+  end
+
+  rule assign
+    operand_1:id space operand_2:wae {
+      def eval(env)
+        env[operand_1.name] = operand_2.eval(env)
+      end
+      def val
+        operand_2.eval(env={})
+      end
+      def name
+        operand_1.name
+      end
+    }
+  end
+
+  rule sum
+    # {+ <WAE> <WAE>} | {- <WAE> <WAE>}
+    '{' space operator_1:sum_op space operand_1:wae space operand_2:wae   space '}' {
+      def eval(env={})
+        operator_1.apply(operand_1.eval(env), operand_2.eval(env))
+      end
+    }
+  end
+
+  rule sum_op
+    '+' {
+      def apply(a, b)
+        a + b
+      end
+    }
+    / '-' {
+      def apply(a,b)
+        a - b
+      end
+    }
+  end
+  
+  rule space
+    ' '*
+  end
+
+  rule negop
+    '-' operand_1:wae {
+      def eval(env={})
+        -operand_1.eval(env)
+      end
+    }
+  end
+
+  rule id
+    [a-z] {
+      def eval(env)
+        env[name]
+      end
+
+      def name
+        text_value
+      end
+
+      def bind(value, env)
+        env.merge(name => value)
+      end
+    }
+  end
+
+  rule num
+    ([1-9] [0-9]* / '0') {
+       def eval(env = {})
+         text_value.to_i
+       end
+    }
+  end
+
+end
