@@ -1,6 +1,28 @@
 grammar Wae
+
+  rule waestart
+    statement:wae ';' {
+    def eval
+      statement.eval
+    end
+  }
+  end
+  
   rule wae
-    num / with /  sum / negop   / id
+    terminal / expression
+  end
+
+  rule terminal 
+    exit / id / num 
+  end
+
+  rule expression
+    with /  sum / negop 
+    {
+      def eval
+        expression.eval
+      end
+    }
   end
   
   rule with
@@ -87,5 +109,14 @@ grammar Wae
        end
     }
   end
+
+   rule exit
+     'exit' {
+       def eval(env = {})
+         puts "Goodbye"
+         exit
+       end
+     }
+   end
 
 end
